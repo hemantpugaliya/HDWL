@@ -1,0 +1,314 @@
+section .bss
+  num: resw 1 ;For storing a number, to be read of printed....
+  nod: resb 1 ;For storing the number of digits....
+  temp: resb 2
+  matrix1: resw 200
+  matrix2: resw 200
+  m: resw 1
+  n: resw 1
+  i: resw 1
+  j: resw 1
+  sign: resb 1
+  flag: resb 1
+  
+section .text
+  msg1: db "Enter the number of rows in the matrices : "
+  msg_size1: equ $-msg1
+  msg2:  db "Enter the elements one by one(row by row) : "
+  msg_size2: equ $-msg2
+  msg3: db "Enter the number of columns in the matrices : "
+  msg_size3: equ $-msg3
+  tab: db  9 ;ASCII for vertical tab
+  new_line: db 10 ;ASCII for new line
+  minus: db "-"
+section .text
+  global _start
+
+_start:
+
+  mov byte[sign], 0
+  mov eax, 4
+  mov ebx, 1
+  mov ecx, msg1
+  mov edx, msg_size1
+  int 80h
+  
+  mov ecx, 0
+  call read_num  
+  mov cx, word[num]
+  mov word[m], cx
+  
+  
+  mov eax, 4
+  mov ebx, 1
+  mov ecx, msg3
+  mov edx, msg_size3
+  int 80h
+  
+  mov ecx, 0
+  call read_num  
+  mov cx, word[num]
+  mov word[n], cx
+  
+  mov eax, 4
+  mov ebx, 1
+  mov ecx, msg2
+  mov edx, msg_size2
+  int 80h
+  
+  ;Reading each element of the matrix........
+  mov eax, 0
+  mov ebx, matrix1  
+  
+  mov word[i], 0
+  mov word[j], 0
+  
+  
+  i_loop:
+    mov word[j], 0
+    j_loop:
+ 
+ call read_num
+ mov dx , word[num]
+ ;eax will contain the array index and each element is 2 bytes(1 word) long
+ mov  word[ebx + 2 * eax], dx
+ inc eax    ;Incrementing array index by one....
+ 
+ inc word[j]
+ mov cx, word[j]
+ cmp cx, word[n]
+ jb j_loop
+ 
+    inc word[i]
+    mov cx, word[i]
+    cmp cx, word[m]
+    jb i_loop
+ 
+ mov eax, 4
+  mov ebx, 1
+  mov ecx, msg2
+  mov edx, msg_size2
+  int 80h 
+  
+
+  ;Reading each element of the matrix2........
+  mov eax, 0
+  mov ebx, matrix2  
+  
+  mov word[i], 0
+  mov word[j], 0
+  
+  
+  i_loop2:
+    mov word[j], 0
+    j_loop2:
+ 
+ call read_num
+ mov dx , word[num]
+ ;eax will contain the array index and each element is 2 bytes(1 word) long
+ mov  word[ebx + 2 * eax], dx
+ inc eax    ;Incrementing array index by one....
+ 
+ inc word[j]
+ mov cx, word[j]
+ cmp cx, word[n]
+ jb j_loop2
+ 
+    inc word[i]
+    mov cx, word[i]
+    cmp cx, word[m]
+    jb i_loop2  
+    
+ ;Subtraction
+ mov eax, 0
+ mov ebx, matrix1
+ mov edx, matrix2  
+  
+  mov word[i], 0
+  mov word[j], 0
+  
+  
+  i_loop4:
+    mov word[j], 0
+    j_loop4:
+		mov cx, word[edx + 2 * eax]
+		sub word[ebx + 2 * eax], cx
+		;Modulus
+		cmp word[ebx + 2 * eax], 0
+		jnl pos
+		mov cx, word[ebx + 2 * eax]
+		neg cx
+		mov word[ebx + 2 * eax], cx
+		
+pos:		 
+ inc eax    ;Incrementing array index by one....
+ 
+ inc word[j]
+ mov cx, word[j]
+ cmp cx, word[n]
+ jb j_loop4
+ 
+    inc word[i]
+    mov cx, word[i]
+    cmp cx, word[m]
+    jb i_loop4  
+ 
+  ;Reading each element of the matrix.(Storing the elements in row major order).......
+  mov eax, 0
+  mov ebx, matrix1  
+  
+  mov word[i], 0
+  mov word[j], 0
+  
+  
+  i_loop3:
+    mov word[j], 0
+    j_loop3:
+ 
+   ;eax will contain the array index and each element is 2 bytes(1 word) long
+   mov  dx, word[ebx + 2 * eax]   ;
+   mov word[num] , dx
+   call print_num
+   
+   ;Printing a space after each element.....
+   pusha
+     mov eax, 4
+     mov ebx, 1
+     mov ecx, tab
+     mov edx, 1
+     int 80h    
+   popa
+   
+   inc eax  
+     
+     
+ inc word[j]
+ mov cx, word[j]
+ cmp cx, word[n]
+ jb j_loop3
+ 
+  pusha
+     mov eax, 4
+     mov ebx, 1
+     mov ecx, new_line
+     mov edx, 1
+     int 80h    
+   popa
+ 
+    inc word[i]
+    mov cx, word[i]
+    cmp cx, word[m]
+    jb i_loop3
+  
+;Exit System Call.....
+exit:
+  mov eax, 1
+  mov ebx, 0
+  int 80h
+
+  
+  
+;Function to read a 16bit number
+    read_num:
+        pusha
+        mov word[num], 0
+
+        loop_read:
+            mov eax, 3
+            mov ebx, 0
+            mov ecx, temp
+            mov edx, 1
+            int 80h
+
+        cmp byte[temp], 10
+            je l1
+
+
+        cmp byte[temp], '-'
+            jne l
+            inc byte[sign]
+            jmp loop_read
+
+    l:  mov ax, word[num]
+        mov bx, 10
+        mul bx
+        mov bl, byte[temp]
+        sub bl, 30h
+        mov bh, 0
+        add ax, bx
+        mov word[num], ax
+        jmp loop_read
+
+    l1: cmp byte[sign], 1
+        jne end_read
+        mov bx, -1
+        mov ax, word[num]
+        mul bx
+        mov word[num],ax
+        mov byte[sign], 0
+
+    end_read:
+    popa
+ret
+
+;Function to print 16bit number
+print_num:
+	mov byte[flag], 0
+    pusha
+	;cmp byte[flag], 1
+	;	je print_no
+    cmp word[num], 0
+		jne lflag
+		add word[num], 30h
+		mov byte[flag], 1
+		mov eax, 4
+		mov ebx, 1
+		mov ecx, num
+		mov edx, 1
+		int 80h
+		jmp end_print
+		
+   lflag: cmp word[num],0
+	  jnl extract_no
+    mov ax, word[num]
+    ;mov bx, -1
+    ;mul bx
+    neg ax
+    mov word[num], ax
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, minus
+    mov edx, 1
+    int 80h
+
+    extract_no:
+        cmp word[num], 0
+        je print_no
+        inc byte[nod]
+        mov dx, 0
+        mov ax, word[num]
+        mov bx, 10
+        div bx
+        push dx
+        mov word[num], ax
+    jmp extract_no
+
+    print_no:
+        cmp byte[nod], 0
+        je end_print
+        dec byte[nod]
+        pop dx
+        mov byte[temp], dl
+        add byte[temp], 30h
+
+        mov eax, 4
+        mov ebx, 1
+        mov ecx, temp
+        mov edx, 1
+        int 80h
+
+        jmp print_no
+    end_print:
+    popa
+ret

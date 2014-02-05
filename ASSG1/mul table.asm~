@@ -1,0 +1,84 @@
+section .text
+ global _start:
+ 
+_start:
+mov eax,3
+mov ebx,0
+mov ecx,num
+mov edx,1
+int 80h
+sub byte[num],30h
+mov bl,1
+mov al,byte[num]
+
+for:
+
+ cmp bl,11
+ je exit
+ 
+ mov byte[count],bl
+ mul bl
+ mov byte[product],al
+ 
+ add byte[num],30h
+ mov eax,4
+ mov ebx,1
+ mov ecx,num
+ mov edx,1
+ int 80h
+ sub byte[num],30h
+ 
+ mov eax,4
+ mov ebx,1
+ mov ecx,mul
+ mov edx,1
+ int 80h
+ 
+ add byte[count],30h
+ mov eax,4
+ mov ebx,1
+ mov ecx,count
+ mov edx,1
+ int 80h
+ sub byte[count],30h
+ 
+ mov eax,4
+ mov ebx,1
+ mov ecx,equal
+ mov edx,1
+ int 80h
+ 
+ add byte[product],30h
+ mov eax,4
+ mov ebx,1
+ mov ecx,product
+ mov edx,1
+ int 80h
+ sub byte[product],30h
+ 
+ 
+ mov eax,4
+ mov ebx,1
+ mov ecx,nextline
+ mov edx,1
+ int 80h
+ 
+ mov bl,byte[count]
+ add bl,1
+ mov al,byte[num]
+ 
+ jmp for
+ 
+ exit: mov eax,1
+ mov ebx,0
+ int 80h
+ 
+ section .data
+ mul: db "*"
+ equal: db "="
+ nextline: db 0Ah
+ 
+ section .bss
+ count: resb 1
+ product: resb 1
+ num: resb 1
