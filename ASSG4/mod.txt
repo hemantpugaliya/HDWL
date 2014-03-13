@@ -1,0 +1,7 @@
+write a nasm program to read a sentence and a string.Find and remove strng and its substring 
+
+In this world no pain no gain
+
+in
+
+o/p: this world , no pa no ga
